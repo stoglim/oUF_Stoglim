@@ -1,0 +1,47 @@
+<Ui xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.blizzard.com/wow/ui/">
+	<Script file="Config.lua" />
+	<Frame name="oufStoglimConfigFrame" parent="oUF_Stoglim" toplevel="true" movable="true" enableMouse="true" enableKeyboard="true">
+		<Size>
+			<AbsDimension x="597" y="572" />
+		</Size>
+		<Anchors>
+			<Anchor point="TOPLEFT">
+				<Offset x="29" y="-44" />
+			</Anchor>
+		</Anchors>
+		<Layers>
+			<Layer level="OVERLAY">
+				<FontString name="lblTest" inherits="GameFontRedLarge" text="Test" justifyH="LEFT">
+					<Size>
+						<AbsDimension x="80" y="20" />
+					</Size>
+					<Anchors>
+						<Anchor point="TOPLEFT">
+							<Offset x="20" y="-20" />
+						</Anchor>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Frames>
+			<EditBox name="EditBoxCooldownOffset" inherits="InputBoxTemplate" autoFocus="false">
+				<Size>
+					<AbsDimension x="100" y="52" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="348" y="-184" />
+					</Anchor>
+				</Anchors>
+			</EditBox>
+		</Frames>
+		<Scripts>
+			<OnLoad>
+				configFramep_OnLoad(self);
+			</OnLoad>
+			<OnEvent>
+				configFramep_OnEvent(self, event, ...);
+			</OnEvent>
+		</Scripts>
+	</Frame>
+</Ui>

@@ -1,0 +1,16 @@
+## Interface: 90001
+## Title: oUF_Stoglim
+## Author: Stoglim
+## Version: 9.0.1
+## Dependencies: oUF
+## Notes: Stoglim's oUF layout
+## X-Category: UnitFrame
+## SavedVariablesPerCharacter: frameLayout, thisThing
+
+# Config.xml
+
+
+Frames.xml
+Core.lua
+DebuffHighlight.lua
+Config.lua
