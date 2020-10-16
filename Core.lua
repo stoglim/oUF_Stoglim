@@ -652,8 +652,19 @@ local function spawnClassPower(self, pclass)
 			if(index > UnitPowerMax('player', Enum.PowerType.ComboPoints) and pclass == 'Rogue') then
 				IconArt:Hide()
 			end
+			
 		end
 
+		if (pclass == 'Rogue' or pclass == 'Druid') then
+			ClassPower[1]:SetStatusBarColor(1, .9, 0)
+			ClassPower[2]:SetStatusBarColor(1, .8, 0)
+			ClassPower[3]:SetStatusBarColor(1, .6, 0)
+			ClassPower[4]:SetStatusBarColor(1, .4, 0)
+			ClassPower[5]:SetStatusBarColor(1, .1, .1)
+			if(maxIdx > 5) then ClassPower[6]:SetStatusBarColor(1, 0, .3) end
+			ClassPower.UpdateColor = function(elem, powerType) end
+		end
+		
 		if(pclass == 'Rogue' or pclass == 'Monk') then
 			classIconFrame:RegisterEvent('PLAYER_TALENT_UPDATE')
 			classIconFrame:SetScript('OnEvent', function(self, event, ...)
