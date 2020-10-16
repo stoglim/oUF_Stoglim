@@ -408,11 +408,7 @@ local PostUpdatePower = function(bar, unit, power, pmin, pmax)
 				bar:GetParent().ClassIconFrame:Hide()
 			end
 		elseif uClass == 'Warlock' then
-			if(IsPlayerSpell(WARLOCK_SOULBURN)) then
-				bar:GetParent().ClassIconFrame:Show()
-			else
-				bar:GetParent().ClassIconFrame:Hide()
-			end
+			bar:GetParent().ClassIconFrame:Show()
 		elseif uClass == 'Mage' then
 			if(GetSpecialization() == 1) then
 				bar:GetParent().ClassIconFrame:Show()
@@ -568,8 +564,8 @@ local function spawnPower(self, unit, params)
 	-- Monk Stagger bar
 	if(unit == 'player' and unitClass == 'MONK') then
 		local Stagger = CreateFrame('StatusBar', nil, self)
-    Stagger:SetSize(self:GetWidth() / 2, self:GetHeight() / 5)
-    Stagger:SetPoint('TOPRIGHT', self, 'BOTTOMRIGHT', -5,  0)
+		Stagger:SetSize(self:GetWidth() / 2, self:GetHeight() / 5)
+		Stagger:SetPoint('TOPRIGHT', self, 'BOTTOMRIGHT', -5,  0)
 		Stagger:SetStatusBarTexture(barTexture)
 
 		local bg = Stagger:CreateTexture(nil, 'OVERLAY')
@@ -577,8 +573,25 @@ local function spawnPower(self, unit, params)
 		bg:SetTexture(borderTexture)
 		bg:SetVertexColor(fvcr, fvcg, fvcb, fvca)
 
+		local staggerBarText = Stagger:CreateFontString(nil, 'OVERLAY', 'GameFontNormal')
+		staggerBarText:SetPoint('RIGHT', Stagger, 'RIGHT', -5, -1)
+		staggerBarText:SetJustifyH('RIGHT')
+		staggerBarText:SetFont(GameFontNormal:GetFont(), 8)
+		staggerBarText:SetTextColor(1, 1, 1)
+
+		Stagger:Hide()
+		
 		Stagger.bg = bg
-    self.Stagger = Stagger
+		Stagger.PostUpdate = function(self, cur, max)
+			if(cur == 0 or UnitIsDead('player') or UnitIsGhost('player')) then
+				staggerBarText:SetText()
+			else
+				local pct =  math.floor(cur/max * 100 + .5)
+				staggerBarText:SetFormattedText('%s%%', pct)
+			end
+		end
+		
+		self.Stagger = Stagger
 	end
 end
 
@@ -636,30 +649,49 @@ local function spawnClassPower(self, pclass)
 			Icon.IconArt = IconArt
 
 			ClassPower[index] = Icon
-			if(index > UnitPowerMax('player', 4) and pclass == 'Rogue') then
+			if(index > UnitPowerMax('player', Enum.PowerType.ComboPoints) and pclass == 'Rogue') then
 				IconArt:Hide()
 			end
 		end
 
-		if (pclass == 'Rogue' or pclass == 'Druid') then
-			ClassPower[1]:SetStatusBarColor(.5, .4, .3)
-			ClassPower[2]:SetStatusBarColor(.6, .5, .2)
-			ClassPower[3]:SetStatusBarColor(.7, .4, .4)
-			ClassPower[4]:SetStatusBarColor(.8, .3, .3)
-			ClassPower[5]:SetStatusBarColor(1, .2, .2)
-			if(maxIdx > 5) then ClassPower[6]:SetStatusBarColor(1, .1, .1) end
-
+		if(pclass == 'Rogue' or pclass == 'Monk') then
 			classIconFrame:RegisterEvent('PLAYER_TALENT_UPDATE')
-			classIconFrame:RegisterEvent('UPDATE_SHAPESHIFT_FORM')
 			classIconFrame:SetScript('OnEvent', function(self, event, ...)
-				if event == 'PLAYER_TALENT_UPDATE' then
-					self.talentChanged = true
-				elseif event == 'UPDATE_SHAPESHIFT_FORM' then
-					self.shiftedForm = true
-				end
+				 -- Meh.  Need to wait for Max power to be updated to actually show change... if any
+				C_Timer.After(1.0, function()
+					local maxIdx = 5
+					if(pclass == 'Rogue') then
+						maxIdx = UnitPowerMax('player', Enum.PowerType.ComboPoints)
+					else
+						maxIdx = UnitPowerMax('player', Enum.PowerType.Chi)
+					end
+					
+					for i = 1, #ClassPower do
+						local spec = GetSpecialization()
+						if (i > maxIdx or (pclass == 'Monk' and spec ~= SPEC_MONK_WINDWALKER)) then
+							ClassPower[i].IconArt:Hide()
+						else
+							ClassPower[i].IconArt:Show()
+						end
+					end
+				end)
 			end)
 		end
-
+		
+		if(pclass == 'Druid') then		
+			classIconFrame:RegisterEvent('UPDATE_SHAPESHIFT_FORM')
+			classIconFrame:SetScript('OnEvent', function(self, event, ...)
+				self.shiftedForm = true	-- Post Update power will fix combo points
+			end)
+		end
+		
+		if(pclass == 'Monk') then
+			if GetSpecialization() ~= SPEC_MONK_WINDWALKER then
+				for i = 1, maxIdx do
+					ClassPower[i].IconArt:Hide()
+				end
+			end
+		end
 		self.ClassIconFrame = classIconFrame
 		self.ClassPower = ClassPower
 	end
@@ -669,23 +701,11 @@ end -- spawnClassPower
 -- Make sure we still need to show class power (shape shift/talent change could affect this)
 --------------------------------------------------
 local function cpointPost(self, cur, max, diff, powerType)
-	if(self.__owner.ClassIconFrame.talentChanged) then
-		self.__owner.ClassIconFrame.talentChanged = false
-		local maxIdx = UnitPowerMax('player', 4)
-		for i = 1, #self.ClassPower do
-			if (i > maxIdx) then
-				self.ClassPower[i].IconArt:Hide()
-			else
-				self.ClassPower[i].IconArt:Show()
-			end
-		end
-	end
-
 	if(self.shiftedForm) then
 		self.shiftedForm = false
 		if(GetShapeshiftForm() == 2) then  -- Puddy tat!
 			self.ClassIconFrame:Show()
-		else
+		else							   -- Not a puddy tat - no combo!
 			self.ClassIconFrame:Hide()
 		end
 	end
